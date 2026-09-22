@@ -1,0 +1,62 @@
+{
+  "lastUpdated": "2026-09-22 10:00 AM",
+  "teams": [
+    {
+      "grade": "7th Grade",
+      "totalPoints": 14250
+    },
+    {
+      "grade": "8th Grade",
+      "totalPoints": 13800
+    }
+  ],
+  "history": [
+    {
+      "day": "Day 1",
+      "7th": 2100,
+      "8th": 1950
+    },
+    {
+      "day": "Day 2",
+      "7th": 4500,
+      "8th": 4800
+    },
+    {
+      "day": "Day 3",
+      "7th": 8900,
+      "8th": 8200
+    },
+    {
+      "day": "Day 4",
+      "7th": 14250,
+      "8th": 13800
+    }
+  ],
+  "leaderboard": [
+    {
+      "name": "Suzie Q.",
+      "grade": "7th Grade",
+      "totalPoints": 123123
+    },
+    {
+      "name": "Jenny Q.",
+      "grade": "8th Grade",
+      "totalPoints": 3453453
+    },
+    {
+      "name": "Johnny Q.",
+      "grade": "7th Grade",
+      "totalPoints": 436343
+    },
+    {
+      "name": "Louise Q.",
+      "grade": "8th Grade",
+      "totalPoints": 85567
+    },
+    {
+      "name": "Cambria Q.",
+      "grade": "7th Grade",
+      "totalPoints": 23423
+    }
+  ]
+}
