@@ -59,6 +59,9 @@ function renderStandings(data) {
     const totalElement = document.querySelector(`[data-total-for="${grade}"]`);
     const rankElement = document.querySelector(`[data-rank-for="${grade}"]`);
     const cardElement = document.querySelector(`[data-team-card="${grade}"]`);
+    if (!totalElement || !rankElement || !cardElement) {
+      throw new Error(`Missing scoreboard elements for ${grade}.`);
+    }
     const rank = teams.findIndex((entry) => entry.grade === grade) + 1;
 
     totalElement.dataset.value ??= "0";
@@ -259,7 +262,13 @@ function drawChartFrame(ctx, canvas, history, progress) {
 
 function renderChart(history) {
   const canvas = document.getElementById("history-chart");
+  if (!(canvas instanceof HTMLCanvasElement)) {
+    throw new Error("History chart canvas is missing.");
+  }
   const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Canvas 2D context is unavailable.");
+  }
   const duration = 1400;
   const start = performance.now();
 
@@ -308,7 +317,13 @@ async function loadLeaderboard() {
 window.addEventListener("resize", () => {
   if (chartHistory.length) {
     const canvas = document.getElementById("history-chart");
+    if (!(canvas instanceof HTMLCanvasElement)) {
+      return;
+    }
     const context = canvas.getContext("2d");
+    if (!context) {
+      return;
+    }
     drawChartFrame(context, canvas, chartHistory, 1);
   }
 });
