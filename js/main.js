@@ -8,6 +8,7 @@ const TEAM_COLORS = {
 let chartHistory = [];
 let chartAnimationFrame;
 let refreshTimeoutId;
+const counterAnimations = new WeakMap();
 
 const formatNumber = (value) => new Intl.NumberFormat("en-US").format(value);
 
@@ -25,6 +26,11 @@ function animateCounter(element, nextValue) {
   const startValue = Number(element.dataset.value || 0);
   const duration = 1200;
   const startTime = performance.now();
+  const currentAnimation = counterAnimations.get(element);
+
+  if (currentAnimation) {
+    cancelAnimationFrame(currentAnimation);
+  }
 
   const tick = (now) => {
     const progress = Math.min((now - startTime) / duration, 1);
@@ -33,13 +39,16 @@ function animateCounter(element, nextValue) {
     element.textContent = formatNumber(currentValue);
 
     if (progress < 1) {
-      requestAnimationFrame(tick);
+      const nextAnimation = requestAnimationFrame(tick);
+      counterAnimations.set(element, nextAnimation);
     } else {
       element.dataset.value = String(nextValue);
+      counterAnimations.delete(element);
     }
   };
 
-  requestAnimationFrame(tick);
+  const nextAnimation = requestAnimationFrame(tick);
+  counterAnimations.set(element, nextAnimation);
 }
 
 function renderStandings(data) {
@@ -127,7 +136,7 @@ function renderStudentLeaderboard(entries) {
 
     name.className = "student-name";
     name.textContent = entry.name;
-    grade.textContent = entry.grade;
+    grade.textContent = ` — ${entry.grade}`;
     details.append(name, grade);
 
     points.className = "student-points";
@@ -276,7 +285,12 @@ function drawChartFrame(ctx, canvas, history, progress) {
 
   history.forEach((entry, index) => {
     const x = padding.left + (chartWidth * index) / Math.max(history.length - 1, 1);
-    ctx.fillText(entry.day, x - 16, cssHeight - 10);
+    const textWidth = ctx.measureText(entry.day).width;
+    const labelX = Math.min(
+      Math.max(x - textWidth / 2, padding.left),
+      padding.left + chartWidth - textWidth
+    );
+    ctx.fillText(entry.day, labelX, cssHeight - 10);
   });
 
   pointSets.forEach(({ grade, points }) => {
