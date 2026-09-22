@@ -359,3 +359,10 @@ body {
     grid-column: 2;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .team-card,
+  #student-leaderboard li {
+    animation: none;
+  }
+}

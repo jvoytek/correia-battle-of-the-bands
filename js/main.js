@@ -73,6 +73,9 @@ function renderStandings(data) {
 
   const diffTotal = document.getElementById("diff-total");
   const diffMeta = document.getElementById("diff-meta");
+  if (!diffTotal || !diffMeta) {
+    throw new Error("Missing lead differential elements.");
+  }
 
   diffTotal.dataset.value ??= "0";
   animateCounter(diffTotal, differential);
@@ -80,7 +83,12 @@ function renderStandings(data) {
 }
 
 function renderStatus(lastUpdated) {
-  document.getElementById("last-updated").textContent = lastUpdated;
+  const lastUpdatedElement = document.getElementById("last-updated");
+  if (!lastUpdatedElement) {
+    throw new Error("Missing last updated element.");
+  }
+
+  lastUpdatedElement.textContent = lastUpdated;
 }
 
 function renderChartSummary(data) {
@@ -97,6 +105,9 @@ function renderChartSummary(data) {
 
 function renderStudentLeaderboard(entries) {
   const list = document.getElementById("student-leaderboard");
+  if (!list) {
+    throw new Error("Missing student leaderboard container.");
+  }
   const topFive = [...entries]
     .sort((left, right) => right.totalPoints - left.totalPoints)
     .slice(0, 5);
@@ -323,8 +334,16 @@ async function loadLeaderboard() {
     renderStatus(data.lastUpdated);
   } catch (error) {
     console.error(error);
-    document.getElementById("diff-meta").textContent = "Unable to load latest leaderboard data.";
-    document.getElementById("last-updated").textContent = "Unavailable";
+    const diffMeta = document.getElementById("diff-meta");
+    const lastUpdated = document.getElementById("last-updated");
+
+    if (diffMeta) {
+      diffMeta.textContent = "Unable to load latest leaderboard data.";
+    }
+
+    if (lastUpdated) {
+      lastUpdated.textContent = "Unavailable";
+    }
   }
 }
 
