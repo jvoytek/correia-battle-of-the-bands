@@ -10,40 +10,21 @@
 <body>
   <main class="app-shell">
     <section class="leaderboard-frame" aria-label="Battle of the Bills fundraiser leaderboard">
-      <!-- Headline block anchored over the background art. -->
-      <header class="hero">
-        <p class="eyebrow">School Fundraiser Leaderboard</p>
-        <h1>Battle of the Bills</h1>
-        <p class="subtitle">7th Grade vs. 8th Grade</p>
-      </header>
 
       <!-- Score cards and lead differential update directly from leaderboard.json. -->
       <section class="scoreboard" aria-label="Team standings">
-        <article class="team-card accent-seven" data-team-card="7th Grade">
-          <div class="rank-badge" data-rank-for="7th Grade">#1</div>
-          <p class="team-label">7th Grade</p>
+        <article id="seventh-grade-team-card" data-team-card="7th Grade">
           <p class="team-total" data-total-for="7th Grade">0</p>
         </article>
 
-        <article class="team-card accent-eight" data-team-card="8th Grade">
-          <div class="rank-badge" data-rank-for="8th Grade">#2</div>
-          <p class="team-label">8th Grade</p>
+        <article id="eighth-grade-team-card" data-team-card="8th Grade">
           <p class="team-total" data-total-for="8th Grade">0</p>
         </article>
 
-        <article class="diff-card" aria-live="polite">
-          <p class="diff-label">Current Lead</p>
-          <p class="diff-total" id="diff-total">0</p>
-          <p class="diff-meta" id="diff-meta">Leaderboard data is loading…</p>
-        </article>
       </section>
 
       <!-- The chart canvas stays transparent so the background image remains visible below it. -->
       <section class="chart-panel" aria-label="Progress chart">
-        <div class="chart-header">
-          <h2>Daily Progress</h2>
-          <p>Animated cumulative totals</p>
-        </div>
         <div class="chart-surface">
           <canvas id="history-chart" aria-describedby="chart-summary">
             Animated line chart showing daily cumulative totals for 7th Grade and 8th Grade.
@@ -55,10 +36,6 @@
       </section>
 
       <aside class="online-leaderboard" aria-label="Top online student contributors">
-        <div class="panel-heading">
-          <h2>Top Online Leaders</h2>
-          <p>Highest individual totals</p>
-        </div>
         <ol id="student-leaderboard"></ol>
       </aside>
 

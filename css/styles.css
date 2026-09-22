@@ -36,10 +36,6 @@ body {
   position: relative;
   width: min(100%, 1600px);
   aspect-ratio: 16 / 9;
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  grid-template-rows: auto auto 1fr auto;
-  gap: clamp(0.75rem, 1.6vw, 1.5rem);
   padding: clamp(1rem, 2vw, 2rem);
   border-radius: 1.5rem;
   overflow: hidden;
@@ -52,8 +48,7 @@ body {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(135deg, rgba(3, 14, 24, 0.78), rgba(3, 14, 24, 0.32)),
-    url("../assets/background.png") center/cover no-repeat;
+    url("../assets/Leaderboard-Background.jpeg") center/cover no-repeat;
   z-index: -2;
 }
 
@@ -67,135 +62,27 @@ body {
   z-index: -1;
 }
 
-.hero,
-.scoreboard,
-.chart-panel,
-.online-leaderboard,
-.status-ticker {
-  backdrop-filter: blur(10px);
-}
-
-.hero {
-  grid-column: 1 / 2;
-  align-self: end;
-}
-
-.eyebrow,
-.subtitle,
-.chart-header p,
-.panel-heading p,
-.diff-label,
-.diff-meta,
-.team-label,
-.status-ticker,
-#student-leaderboard span {
-  color: var(--muted);
-}
-
-.eyebrow {
-  margin: 0 0 0.4rem;
-  font-size: clamp(0.85rem, 1.2vw, 1rem);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-.hero h1 {
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 4rem);
-  line-height: 0.95;
-}
-
-.subtitle {
-  margin: 0.6rem 0 0;
-  font-size: clamp(1rem, 1.6vw, 1.3rem);
-}
-
 .scoreboard {
-  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(0.75rem, 1.4vw, 1.25rem);
 }
 
-.team-card,
-.diff-card,
-.chart-panel,
-.online-leaderboard,
-.status-ticker {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 1.2rem;
-}
-
-.team-card,
-.diff-card {
-  position: relative;
-  padding: clamp(1rem, 2vw, 1.5rem);
-  min-height: 8rem;
-}
-
-.team-card {
-  overflow: hidden;
-  transform: translateY(18px);
-  opacity: 0;
-  animation: rise-in 700ms ease forwards;
-}
-
-.team-card:nth-child(2) {
-  animation-delay: 120ms;
-}
-
-.accent-seven {
-  background: linear-gradient(180deg, rgba(39, 198, 255, 0.22), var(--panel));
-}
-
-.accent-eight {
-  background: linear-gradient(180deg, rgba(255, 141, 59, 0.22), var(--panel));
-}
-
-.rank-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  min-width: 3rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  text-align: center;
-  font-weight: 700;
-  background: var(--panel-strong);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.team-total,
-.diff-total {
+.team-total {
   margin: 0.35rem 0 0;
-  font-size: clamp(2rem, 3.2vw, 3.2rem);
+  font-size: clamp(2rem, 2.5vw, 2.5rem);
   font-weight: 800;
 }
 
-.diff-card {
-  display: grid;
-  align-content: center;
-  text-align: center;
-  background: var(--panel-strong);
-}
-
-.diff-label,
-.diff-meta,
-.team-label {
-  margin: 0;
-}
-
-.diff-meta {
-  margin-top: 0.45rem;
-}
-
 .chart-panel {
-  grid-column: 1 / 2;
   display: grid;
-  grid-template-rows: auto 1fr;
   padding: clamp(1rem, 1.8vw, 1.4rem);
   min-height: 0;
+  position: absolute;
+  width: 34%;
+  height: 24%;
+  left: 33%;
+  top: 40%;
 }
 
 .chart-header,
@@ -216,7 +103,6 @@ body {
   position: relative;
   min-height: 0;
   height: 100%;
-  min-height: 20rem;
   padding-top: 1rem;
 }
 
@@ -226,29 +112,41 @@ body {
 }
 
 .online-leaderboard {
-  grid-column: 2 / 3;
-  grid-row: 3 / 4;
   padding: clamp(1rem, 1.8vw, 1.4rem);
+  position: absolute;
+  width: 21%;
+  left: 12%;
+  top: 62%;
 }
+
+#seventh-grade-team-card, 
+#eighth-grade-team-card {
+  position: absolute;
+  top:35.5%;
+}
+
+#seventh-grade-team-card {
+  left: 34%;
+}
+
+#eighth-grade-team-card {
+  left: 52%;
+}
+
 
 #student-leaderboard {
   margin: 1rem 0 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 0.8rem;
+  gap: 0.4rem;
 }
 
 #student-leaderboard li {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.9rem;
-  align-items: center;
   padding: 0.8rem 0.95rem;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  animation: pulse-glow 2.4s ease-in-out infinite;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 #student-leaderboard li:nth-child(2) { animation-delay: 150ms; }
@@ -257,31 +155,28 @@ body {
 #student-leaderboard li:nth-child(5) { animation-delay: 600ms; }
 
 .student-rank {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--text);
+
 }
 
 .student-name {
-  display: block;
-  font-weight: 700;
 }
 
 .student-points {
-  font-weight: 800;
-  color: var(--text);
+
 }
 
 .status-ticker {
-  grid-column: 1 / -1;
   display: flex;
   justify-content: center;
   gap: 0.4rem;
   padding: 0.85rem 1rem;
-  background: rgba(7, 21, 36, 0.82);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.85rem;
+  position: absolute;
+  bottom: 0%;
+  left: 0%;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .visually-hidden {
@@ -297,7 +192,6 @@ body {
 }
 
 .is-leading {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 0 2.5rem rgba(255, 214, 10, 0.16);
 }
 
 @keyframes rise-in {

@@ -1,8 +1,8 @@
 const DATA_PATH = "./data/leaderboard.json";
 const TEAM_ORDER = ["7th Grade", "8th Grade"];
 const TEAM_COLORS = {
-  "7th Grade": { solid: "#27c6ff", soft: "rgba(39, 198, 255, 0.18)" },
-  "8th Grade": { solid: "#ff8d3b", soft: "rgba(255, 141, 59, 0.18)" }
+  "7th Grade": { solid: "#1223b7", soft: "rgba(39, 198, 255, 0.18)" },
+  "8th Grade": { solid: "#e10000", soft: "rgba(255, 141, 59, 0.18)" }
 };
 
 let chartHistory = [];
@@ -36,7 +36,7 @@ function animateCounter(element, nextValue) {
     const progress = Math.min((now - startTime) / duration, 1);
     const eased = 1 - Math.pow(1 - progress, 3);
     const currentValue = Math.round(startValue + (nextValue - startValue) * eased);
-    element.textContent = formatNumber(currentValue);
+    element.textContent = formatNumber(currentValue) + " pts ";
 
     if (progress < 1) {
       const nextAnimation = requestAnimationFrame(tick);
@@ -67,20 +67,20 @@ function renderStandings(data) {
     }
 
     const totalElement = document.querySelector(`[data-total-for="${grade}"]`);
-    const rankElement = document.querySelector(`[data-rank-for="${grade}"]`);
+    //const rankElement = document.querySelector(`[data-rank-for="${grade}"]`);
     const cardElement = document.querySelector(`[data-team-card="${grade}"]`);
-    if (!totalElement || !rankElement || !cardElement) {
+    if (!totalElement || !cardElement) {
       throw new Error(`Missing scoreboard elements for ${grade}.`);
     }
-    const rank = teams.findIndex((entry) => entry.grade === grade) + 1;
+    //const rank = teams.findIndex((entry) => entry.grade === grade) + 1;
 
     totalElement.dataset.value ??= "0";
     animateCounter(totalElement, team.totalPoints);
-    rankElement.textContent = `#${rank}`;
+    //rankElement.textContent = `#${rank}`;
     cardElement.classList.toggle("is-leading", grade === leader.grade);
   });
 
-  const diffTotal = document.getElementById("diff-total");
+  /*const diffTotal = document.getElementById("diff-total");
   const diffMeta = document.getElementById("diff-meta");
   if (!diffTotal || !diffMeta) {
     throw new Error("Missing lead differential elements.");
@@ -88,7 +88,7 @@ function renderStandings(data) {
 
   diffTotal.dataset.value ??= "0";
   animateCounter(diffTotal, differential);
-  diffMeta.textContent = `${leader.grade} leads by ${formatNumber(differential)} points`;
+  diffMeta.textContent = `${leader.grade} leads by ${formatNumber(differential)} points`;*/
 }
 
 function renderStatus(lastUpdated) {
@@ -107,8 +107,8 @@ function renderChartSummary(data) {
   }
 
   const finalDay = data.history.at(-1)?.day ?? "the latest update";
-  const seventh = data.teams.find((entry) => entry.grade === "7th Grade")?.totalPoints ?? 0;
-  const eighth = data.teams.find((entry) => entry.grade === "8th Grade")?.totalPoints ?? 0;
+  const seventh = data.teams.find((entry) => entry.grade === "(7th)")?.totalPoints ?? 0;
+  const eighth = data.teams.find((entry) => entry.grade === "(8th)")?.totalPoints ?? 0;
   summary.textContent = `${finalDay}: 7th Grade has ${formatNumber(seventh)} points and 8th Grade has ${formatNumber(eighth)} points.`;
 }
 
@@ -132,17 +132,17 @@ function renderStudentLeaderboard(entries) {
     const points = document.createElement("span");
 
     rank.className = "student-rank";
-    rank.textContent = `#${index + 1}`;
+    rank.textContent = `${index + 1}. `;
 
     name.className = "student-name";
     name.textContent = entry.name;
-    grade.textContent = ` — ${entry.grade}`;
+    grade.textContent = ` ${entry.grade} `;
     details.append(name, grade);
 
     points.className = "student-points";
     points.textContent = formatNumber(entry.totalPoints);
 
-    item.append(rank, details, points);
+    item.append(rank, details, points, " pts");
     list.appendChild(item);
   });
 }
@@ -218,7 +218,7 @@ function drawSmoothLine(ctx, points, color, progress) {
     const next = visiblePoints[index + 1];
     const midX = (current.x + next.x) / 2;
     const midY = (current.y + next.y) / 2;
-    ctx.quadraticCurveTo(current.x, current.y, midX, midY);
+    ctx.lineTo(current.x, current.y, midX, midY);
   }
 
   const lastPoint = visiblePoints[visiblePoints.length - 1];
