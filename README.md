@@ -67,7 +67,7 @@ That commit automatically triggers `.github/workflows/pages.yml`, which redeploy
 Because this is a static site, any simple HTTP server works:
 
 ```bash
-cd /home/runner/work/correia-battle-of-the-bands/correia-battle-of-the-bands
+cd correia-battle-of-the-bands
 python3 -m http.server 8000
 ```
 

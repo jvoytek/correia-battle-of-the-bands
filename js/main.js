@@ -136,7 +136,7 @@ function getChartPointSets(history, width, height, padding) {
     return [];
   }
 
-  const maxValue = Math.max(...history.flatMap((entry) => [entry["7th"], entry["8th"]]));
+  const maxValue = Math.max(...history.flatMap((entry) => [entry["7th"], entry["8th"]]), 0);
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
@@ -146,7 +146,9 @@ function getChartPointSets(history, width, height, padding) {
       grade,
       points: history.map((entry, index) => ({
         x: padding.left + (chartWidth * index) / Math.max(history.length - 1, 1),
-        y: padding.top + chartHeight - (entry[key] / maxValue) * chartHeight,
+        y: maxValue === 0
+          ? padding.top + chartHeight
+          : padding.top + chartHeight - (entry[key] / maxValue) * chartHeight,
         value: entry[key]
       }))
     };
@@ -228,7 +230,7 @@ function drawChartFrame(ctx, canvas, history, progress) {
 
   const chartWidth = cssWidth - padding.left - padding.right;
   const chartHeight = cssHeight - padding.top - padding.bottom;
-  const maxValue = Math.max(...history.flatMap((entry) => [entry["7th"], entry["8th"]]));
+  const maxValue = Math.max(...history.flatMap((entry) => [entry["7th"], entry["8th"]]), 0);
   const pointSets = getChartPointSets(history, cssWidth, cssHeight, padding);
 
   ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
