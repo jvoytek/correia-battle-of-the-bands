@@ -7,6 +7,7 @@ const TEAM_COLORS = {
 
 let chartHistory = [];
 let chartAnimationFrame;
+let refreshTimeoutId;
 
 const formatNumber = (value) => new Intl.NumberFormat("en-US").format(value);
 
@@ -80,6 +81,18 @@ function renderStandings(data) {
 
 function renderStatus(lastUpdated) {
   document.getElementById("last-updated").textContent = lastUpdated;
+}
+
+function renderChartSummary(data) {
+  const summary = document.getElementById("chart-summary");
+  if (!summary) {
+    return;
+  }
+
+  const finalDay = data.history.at(-1)?.day ?? "the latest update";
+  const seventh = data.teams.find((entry) => entry.grade === "7th Grade")?.totalPoints ?? 0;
+  const eighth = data.teams.find((entry) => entry.grade === "8th Grade")?.totalPoints ?? 0;
+  summary.textContent = `${finalDay}: 7th Grade has ${formatNumber(seventh)} points and 8th Grade has ${formatNumber(eighth)} points.`;
 }
 
 function renderStudentLeaderboard(entries) {
@@ -305,6 +318,7 @@ async function loadLeaderboard() {
     validateDataShape(data);
     renderStandings(data);
     renderChart(data.history);
+    renderChartSummary(data);
     renderStudentLeaderboard(data.leaderboard);
     renderStatus(data.lastUpdated);
   } catch (error) {
@@ -312,6 +326,14 @@ async function loadLeaderboard() {
     document.getElementById("diff-meta").textContent = "Unable to load latest leaderboard data.";
     document.getElementById("last-updated").textContent = "Unavailable";
   }
+}
+
+async function scheduleRefresh() {
+  clearTimeout(refreshTimeoutId);
+  refreshTimeoutId = window.setTimeout(async () => {
+    await loadLeaderboard();
+    await scheduleRefresh();
+  }, 60000);
 }
 
 window.addEventListener("resize", () => {
@@ -330,5 +352,5 @@ window.addEventListener("resize", () => {
 
 window.addEventListener("DOMContentLoaded", async () => {
   await loadLeaderboard();
-  window.setInterval(loadLeaderboard, 60000);
+  await scheduleRefresh();
 });

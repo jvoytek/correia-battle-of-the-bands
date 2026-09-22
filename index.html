@@ -45,10 +45,13 @@
           <p>Animated cumulative totals</p>
         </div>
         <div class="chart-surface">
-          <canvas id="history-chart">
+          <canvas id="history-chart" aria-describedby="chart-summary">
             Animated line chart showing daily cumulative totals for 7th Grade and 8th Grade.
           </canvas>
         </div>
+        <p class="visually-hidden" id="chart-summary">
+          Loading cumulative daily progress for 7th Grade and 8th Grade.
+        </p>
       </section>
 
       <aside class="online-leaderboard" aria-label="Top online student contributors">

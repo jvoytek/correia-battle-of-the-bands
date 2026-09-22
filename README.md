@@ -1,4 +1,4 @@
-# correia-battle-of-the-bands
+# correia-battle-of-the-bands — Battle of the Bills
 
 Turnkey static GitHub Pages site for the **Battle of the Bills** school fundraiser leaderboard.
 
