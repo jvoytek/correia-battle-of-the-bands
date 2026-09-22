@@ -5,7 +5,8 @@ const TEAM_COLORS = {
   "8th Grade": { solid: "#ff8d3b", soft: "rgba(255, 141, 59, 0.18)" }
 };
 
-let leaderboardChart;
+let chartHistory = [];
+let chartAnimationFrame;
 
 const formatNumber = (value) => new Intl.NumberFormat("en-US").format(value);
 
@@ -110,75 +111,141 @@ function renderStudentLeaderboard(entries) {
   });
 }
 
-function renderChart(history) {
-  const canvas = document.getElementById("history-chart");
-  const labels = history.map((entry) => entry.day);
-  const datasets = TEAM_ORDER.map((grade) => {
+function getChartPointSets(history, width, height, padding) {
+  const maxValue = Math.max(...history.flatMap((entry) => [entry["7th"], entry["8th"]]));
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+
+  return TEAM_ORDER.map((grade) => {
     const key = grade.startsWith("7th") ? "7th" : "8th";
     return {
-      label: grade,
-      data: history.map((entry) => entry[key]),
-      borderColor: TEAM_COLORS[grade].solid,
-      backgroundColor: TEAM_COLORS[grade].soft,
-      pointBackgroundColor: TEAM_COLORS[grade].solid,
-      pointBorderColor: "#ffffff",
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      pointBorderWidth: 2,
-      borderWidth: 4,
-      tension: 0.35,
-      fill: false
+      grade,
+      points: history.map((entry, index) => ({
+        x: padding.left + (chartWidth * index) / Math.max(history.length - 1, 1),
+        y: padding.top + chartHeight - (entry[key] / maxValue) * chartHeight,
+        value: entry[key]
+      }))
     };
   });
+}
 
-  if (leaderboardChart) {
-    leaderboardChart.destroy();
+function drawSmoothLine(ctx, points, color, progress) {
+  if (!points.length) {
+    return;
   }
 
-  leaderboardChart = new window.Chart(canvas, {
-    type: "line",
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: {
-        duration: 1400,
-        easing: "easeOutQuart"
-      },
-      interaction: {
-        mode: "index",
-        intersect: false
-      },
-      plugins: {
-        legend: {
-          labels: { color: "#f7fbff", usePointStyle: true, boxWidth: 10 }
-        },
-        tooltip: {
-          callbacks: {
-            label(context) {
-              return `${context.dataset.label}: ${formatNumber(context.parsed.y)}`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: "#d7e5f4" },
-          grid: { color: "rgba(255, 255, 255, 0.08)" }
-        },
-        y: {
-          beginAtZero: true,
-          ticks: {
-            color: "#d7e5f4",
-            callback(value) {
-              return formatNumber(value);
-            }
-          },
-          grid: { color: "rgba(255, 255, 255, 0.08)" }
-        }
-      }
-    }
+  const segmentProgress = progress * Math.max(points.length - 1, 1);
+  const visibleSegments = Math.floor(segmentProgress);
+  const partialProgress = segmentProgress - visibleSegments;
+  const visiblePoints = points.slice(0, visibleSegments + 1);
+
+  if (visiblePoints.length < points.length && points[visibleSegments + 1]) {
+    const current = points[visibleSegments];
+    const next = points[visibleSegments + 1];
+    visiblePoints.push({
+      x: current.x + (next.x - current.x) * partialProgress,
+      y: current.y + (next.y - current.y) * partialProgress
+    });
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(visiblePoints[0].x, visiblePoints[0].y);
+
+  for (let index = 0; index < visiblePoints.length - 1; index += 1) {
+    const current = visiblePoints[index];
+    const next = visiblePoints[index + 1];
+    const midX = (current.x + next.x) / 2;
+    const midY = (current.y + next.y) / 2;
+    ctx.quadraticCurveTo(current.x, current.y, midX, midY);
+  }
+
+  const lastPoint = visiblePoints[visiblePoints.length - 1];
+  ctx.lineTo(lastPoint.x, lastPoint.y);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  visiblePoints.forEach((point) => {
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.stroke();
   });
+}
+
+function drawChartFrame(ctx, canvas, history, progress) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const width = Math.max(Math.round(rect.width * dpr), 1);
+  const height = Math.max(Math.round(rect.height * dpr), 1);
+  const padding = { top: 24, right: 16, bottom: 38, left: 52 };
+
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+
+  const cssWidth = rect.width;
+  const cssHeight = rect.height;
+  ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+  const chartWidth = cssWidth - padding.left - padding.right;
+  const chartHeight = cssHeight - padding.top - padding.bottom;
+  const maxValue = Math.max(...history.flatMap((entry) => [entry["7th"], entry["8th"]]));
+  const pointSets = getChartPointSets(history, cssWidth, cssHeight, padding);
+
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.fillStyle = "#d7e5f4";
+  ctx.font = '12px Inter, "Segoe UI", Arial, sans-serif';
+
+  for (let step = 0; step <= 4; step += 1) {
+    const y = padding.top + (chartHeight * step) / 4;
+    const value = Math.round(maxValue - (maxValue * step) / 4);
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(padding.left + chartWidth, y);
+    ctx.stroke();
+    ctx.fillText(formatNumber(value), 8, y + 4);
+  }
+
+  history.forEach((entry, index) => {
+    const x = padding.left + (chartWidth * index) / Math.max(history.length - 1, 1);
+    ctx.fillText(entry.day, x - 16, cssHeight - 10);
+  });
+
+  pointSets.forEach(({ grade, points }) => {
+    drawSmoothLine(ctx, points, TEAM_COLORS[grade].solid, progress);
+  });
+}
+
+function renderChart(history) {
+  const canvas = document.getElementById("history-chart");
+  const context = canvas.getContext("2d");
+  const duration = 1400;
+  const start = performance.now();
+
+  chartHistory = history;
+  cancelAnimationFrame(chartAnimationFrame);
+
+  const animate = (timestamp) => {
+    const progress = Math.min((timestamp - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    drawChartFrame(context, canvas, history, eased);
+
+    if (progress < 1) {
+      chartAnimationFrame = requestAnimationFrame(animate);
+    }
+  };
+
+  chartAnimationFrame = requestAnimationFrame(animate);
 }
 
 function validateDataShape(data) {
@@ -202,12 +269,15 @@ async function loadLeaderboard() {
   }
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
-  if (typeof window.Chart === "undefined") {
-    window.addEventListener("load", loadLeaderboard, { once: true });
-    return;
+window.addEventListener("resize", () => {
+  if (chartHistory.length) {
+    const canvas = document.getElementById("history-chart");
+    const context = canvas.getContext("2d");
+    drawChartFrame(context, canvas, chartHistory, 1);
   }
+});
 
+window.addEventListener("DOMContentLoaded", async () => {
   await loadLeaderboard();
   window.setInterval(loadLeaderboard, 60000);
 });
