@@ -6,7 +6,7 @@ Turnkey static GitHub Pages site for the **Battle of the Bills** school fundrais
 
 - Responsive single-page leaderboard overlay
 - Animated team counters and lead differential
-- Animated two-line Chart.js progress graph
+- Animated two-line Canvas progress graph
 - Top five online student leaderboard
 - GitHub Pages deployment workflow that republishes on every push to `main`
 

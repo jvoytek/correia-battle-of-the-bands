@@ -111,7 +111,31 @@ function renderStudentLeaderboard(entries) {
   });
 }
 
+function drawEmptyChartState(ctx, canvas, message) {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const width = Math.max(Math.round(rect.width * dpr), 1);
+  const height = Math.max(Math.round(rect.height * dpr), 1);
+
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+  ctx.font = '600 16px Inter, "Segoe UI", Arial, sans-serif';
+  ctx.textAlign = "center";
+  ctx.fillText(message, rect.width / 2, rect.height / 2);
+}
+
 function getChartPointSets(history, width, height, padding) {
+  if (!history.length) {
+    return [];
+  }
+
   const maxValue = Math.max(...history.flatMap((entry) => [entry["7th"], entry["8th"]]));
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
@@ -179,6 +203,11 @@ function drawSmoothLine(ctx, points, color, progress) {
 }
 
 function drawChartFrame(ctx, canvas, history, progress) {
+  if (!history.length) {
+    drawEmptyChartState(ctx, canvas, "Waiting for progress history");
+    return;
+  }
+
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
   const width = Math.max(Math.round(rect.width * dpr), 1);
@@ -234,6 +263,11 @@ function renderChart(history) {
 
   chartHistory = history;
   cancelAnimationFrame(chartAnimationFrame);
+
+  if (!history.length) {
+    drawEmptyChartState(context, canvas, "Waiting for progress history");
+    return;
+  }
 
   const animate = (timestamp) => {
     const progress = Math.min((timestamp - start) / duration, 1);
