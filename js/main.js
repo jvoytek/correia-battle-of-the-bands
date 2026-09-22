@@ -11,6 +11,7 @@ let refreshTimeoutId;
 const counterAnimations = new WeakMap();
 
 const formatNumber = (value) => new Intl.NumberFormat("en-US").format(value);
+const formatDayLabel = (day) => /\d/.test(day) && !/[A-Za-z]/.test(day) ? `Day ${day}` : day;
 
 async function fetchLeaderboardData() {
   // Cache-busting keeps Pages/CDN responses fresh after JSON-only updates.
@@ -106,10 +107,12 @@ function renderChartSummary(data) {
     return;
   }
 
-  const finalDay = data.history.at(-1)?.day ?? "the latest update";
-  const seventh = data.teams.find((entry) => entry.grade === "(7th)")?.totalPoints ?? 0;
-  const eighth = data.teams.find((entry) => entry.grade === "(8th)")?.totalPoints ?? 0;
-  summary.textContent = `${finalDay}: 7th Grade has ${formatNumber(seventh)} points and 8th Grade has ${formatNumber(eighth)} points.`;
+  const finalEntry = data.history.at(-1);
+  const finalDay = formatDayLabel(finalEntry?.day ?? "the latest update");
+  const seventh = finalEntry?.["7th"] ?? data.teams.find((entry) => entry.grade === "7th Grade")?.totalPoints ?? 0;
+  const eighth = finalEntry?.["8th"] ?? data.teams.find((entry) => entry.grade === "8th Grade")?.totalPoints ?? 0;
+  const leader = seventh === eighth ? "The grades are tied" : seventh > eighth ? "7th Grade leads" : "8th Grade leads";
+  summary.textContent = `${finalDay}: animated bar chart race. 7th Grade has ${formatNumber(seventh)} points and 8th Grade has ${formatNumber(eighth)} points. ${leader}.`;
 }
 
 function renderStudentLeaderboard(entries) {
@@ -167,77 +170,61 @@ function drawEmptyChartState(ctx, canvas, message) {
   ctx.fillText(message, rect.width / 2, rect.height / 2);
 }
 
-function getChartPointSets(history, width, height, padding) {
+function getRaceFrame(history, progress) {
   if (!history.length) {
-    return [];
+    return { day: "Waiting", dayLabel: "Waiting", bars: [] };
   }
 
-  const maxValue = Math.max(...history.flatMap((entry) => [entry["7th"], entry["8th"]]), 0);
-  const chartWidth = width - padding.left - padding.right;
-  const chartHeight = height - padding.top - padding.bottom;
-
-  return TEAM_ORDER.map((grade) => {
-    const key = grade.startsWith("7th") ? "7th" : "8th";
+  if (history.length === 1) {
     return {
-      grade,
-      points: history.map((entry, index) => ({
-        x: padding.left + (chartWidth * index) / Math.max(history.length - 1, 1),
-        y: maxValue === 0
-          ? padding.top + chartHeight
-          : padding.top + chartHeight - (entry[key] / maxValue) * chartHeight,
-        value: entry[key]
-      }))
+      day: history[0].day,
+      dayLabel: formatDayLabel(history[0].day),
+      bars: TEAM_ORDER.map((grade) => {
+        const key = grade.startsWith("7th") ? "7th" : "8th";
+        return { grade, value: history[0][key] ?? 0 };
+      }).sort((left, right) => right.value - left.value)
     };
-  });
+  }
+
+  const scaledProgress = progress * (history.length - 1);
+  const startIndex = Math.min(Math.floor(scaledProgress), history.length - 1);
+  const endIndex = Math.min(startIndex + 1, history.length - 1);
+  const frameProgress = Math.min(scaledProgress - startIndex, 1);
+  const startEntry = history[startIndex];
+  const endEntry = history[endIndex];
+
+  return {
+    day: endIndex === startIndex ? startEntry.day : endEntry.day,
+    dayLabel: formatDayLabel(endIndex === startIndex ? startEntry.day : endEntry.day),
+    bars: TEAM_ORDER.map((grade) => {
+      const key = grade.startsWith("7th") ? "7th" : "8th";
+      const startValue = startEntry[key] ?? 0;
+      const endValue = endEntry[key] ?? startValue;
+
+      return {
+        grade,
+        value: Math.round(startValue + (endValue - startValue) * frameProgress)
+      };
+    }).sort((left, right) => right.value - left.value)
+  };
 }
 
-function drawSmoothLine(ctx, points, color, progress) {
-  if (!points.length) {
-    return;
-  }
-
-  const segmentProgress = progress * Math.max(points.length - 1, 1);
-  const visibleSegments = Math.floor(segmentProgress);
-  const partialProgress = segmentProgress - visibleSegments;
-  const visiblePoints = points.slice(0, visibleSegments + 1);
-
-  if (visiblePoints.length < points.length && points[visibleSegments + 1]) {
-    const current = points[visibleSegments];
-    const next = points[visibleSegments + 1];
-    visiblePoints.push({
-      x: current.x + (next.x - current.x) * partialProgress,
-      y: current.y + (next.y - current.y) * partialProgress
-    });
-  }
+function drawRoundedBar(ctx, x, y, width, height, color) {
+  const radius = Math.min(height / 2, 14, width / 2);
 
   ctx.beginPath();
-  ctx.moveTo(visiblePoints[0].x, visiblePoints[0].y);
-
-  for (let index = 0; index < visiblePoints.length - 1; index += 1) {
-    const current = visiblePoints[index];
-    const next = visiblePoints[index + 1];
-    const midX = (current.x + next.x) / 2;
-    const midY = (current.y + next.y) / 2;
-    ctx.lineTo(current.x, current.y, midX, midY);
-  }
-
-  const lastPoint = visiblePoints[visiblePoints.length - 1];
-  ctx.lineTo(lastPoint.x, lastPoint.y);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 4;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.stroke();
-
-  visiblePoints.forEach((point) => {
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#ffffff";
-    ctx.stroke();
-  });
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
 }
 
 function drawChartFrame(ctx, canvas, history, progress) {
@@ -265,36 +252,60 @@ function drawChartFrame(ctx, canvas, history, progress) {
   ctx.clearRect(0, 0, cssWidth, cssHeight);
 
   const chartWidth = cssWidth - padding.left - padding.right;
-  const chartHeight = cssHeight - padding.top - padding.bottom;
+  const rowHeight = Math.min(72, (cssHeight - padding.top - padding.bottom) / TEAM_ORDER.length - 12);
+  const rowGap = 18;
   const maxValue = Math.max(...history.flatMap((entry) => [entry["7th"], entry["8th"]]), 0);
-  const pointSets = getChartPointSets(history, cssWidth, cssHeight, padding);
+  const raceFrame = getRaceFrame(history, progress);
+  const safeMaxValue = Math.max(maxValue, 1);
 
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-  ctx.fillStyle = "#d7e5f4";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
   ctx.font = '12px Inter, "Segoe UI", Arial, sans-serif';
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
 
   for (let step = 0; step <= 4; step += 1) {
-    const y = padding.top + (chartHeight * step) / 4;
-    const value = Math.round(maxValue - (maxValue * step) / 4);
+    const tickValue = Math.round((safeMaxValue * step) / 4);
+    const x = padding.left + (chartWidth * step) / 4;
     ctx.beginPath();
-    ctx.moveTo(padding.left, y);
-    ctx.lineTo(padding.left + chartWidth, y);
+    ctx.moveTo(x, padding.top);
+    ctx.lineTo(x, cssHeight - padding.bottom);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     ctx.stroke();
-    ctx.fillText(formatNumber(value), 8, y + 4);
+    ctx.fillStyle = "#d7e5f4";
+    ctx.fillText(formatNumber(tickValue), Math.min(x + 4, cssWidth - padding.right - 24), cssHeight - 12);
   }
 
-  history.forEach((entry, index) => {
-    const x = padding.left + (chartWidth * index) / Math.max(history.length - 1, 1);
-    const textWidth = ctx.measureText(entry.day).width;
-    const labelX = Math.min(
-      Math.max(x - textWidth / 2, padding.left),
-      padding.left + chartWidth - textWidth
-    );
-    ctx.fillText(entry.day, labelX, cssHeight - 10);
-  });
+  ctx.fillStyle = "rgba(247, 251, 255, 0.22)";
+  ctx.font = '700 64px Inter, "Segoe UI", Arial, sans-serif';
+  ctx.textAlign = "right";
+  ctx.fillText(raceFrame.dayLabel, cssWidth - padding.right, padding.top + 18);
 
-  pointSets.forEach(({ grade, points }) => {
-    drawSmoothLine(ctx, points, TEAM_COLORS[grade].solid, progress);
+  ctx.textAlign = "left";
+  raceFrame.bars.forEach((bar, index) => {
+    const barTop = padding.top + 42 + index * (rowHeight + rowGap);
+    const filledWidth = Math.max((bar.value / safeMaxValue) * chartWidth, rowHeight * 0.65);
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+    drawRoundedBar(ctx, padding.left, barTop, chartWidth, rowHeight, "rgba(255, 255, 255, 0.08)");
+    drawRoundedBar(ctx, padding.left, barTop, filledWidth, rowHeight, TEAM_COLORS[bar.grade].solid);
+
+    ctx.fillStyle = "#f7fbff";
+    ctx.font = '700 20px Inter, "Segoe UI", Arial, sans-serif';
+    ctx.fillText(bar.grade, padding.left + 14, barTop + rowHeight / 2);
+
+    const valueLabel = formatNumber(bar.value);
+    const valueLabelWidth = ctx.measureText(valueLabel).width;
+    const valueFitsInsideBar = filledWidth > valueLabelWidth + 40;
+
+    ctx.textAlign = "right";
+    ctx.fillText(
+      valueLabel,
+      valueFitsInsideBar
+        ? padding.left + filledWidth - 12
+        : Math.min(padding.left + filledWidth + valueLabelWidth + 18, cssWidth - padding.right),
+      barTop + rowHeight / 2
+    );
+    ctx.textAlign = "left";
   });
 }
 
