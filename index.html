@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battle of the Bills</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="leaderboard-frame" aria-label="Battle of the Bills fundraiser leaderboard">
+
+      <!-- Score cards and lead differential update directly from leaderboard.json. -->
+      <section class="scoreboard" aria-label="Team standings">
+        <article id="seventh-grade-team-card" data-team-card="7th Grade">
+          <p class="team-total" data-total-for="7th Grade">0</p>
+        </article>
+
+        <article id="eighth-grade-team-card" data-team-card="8th Grade">
+          <p class="team-total" data-total-for="8th Grade">0</p>
+        </article>
+
+      </section>
+
+      <!-- The chart canvas stays transparent so the background image remains visible below it. -->
+      <section class="chart-panel" aria-label="Progress chart">
+        <div id="history-chart" aria-describedby="chart-summary" role="img"></div>
+        <p class="visually-hidden" id="chart-summary">
+          Loading animated bar chart race for 7th Grade and 8th Grade.
+        </p>
+      </section>
+
+      <aside class="online-leaderboard" aria-label="Top online student contributors">
+        <ol id="student-leaderboard"></ol>
+      </aside>
+
+      <footer class="status-ticker" aria-live="polite">
+        <span>Last Updated:</span>
+        <strong id="last-updated">Loading…</strong>
+      </footer>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/racing-bars/racing-bars.umd.js"></script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
