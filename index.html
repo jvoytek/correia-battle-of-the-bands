@@ -25,9 +25,7 @@
 
       <!-- The chart canvas stays transparent so the background image remains visible below it. -->
       <section class="chart-panel" aria-label="Progress chart">
-        <div class="chart-surface">
-          <div id="history-chart" aria-describedby="chart-summary" role="img"></div>
-        </div>
+        <div id="history-chart" aria-describedby="chart-summary" role="img"></div>
         <p class="visually-hidden" id="chart-summary">
           Loading animated bar chart race for 7th Grade and 8th Grade.
         </p>
@@ -43,6 +41,7 @@
       </footer>
     </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/racing-bars/racing-bars.umd.js"></script>
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>

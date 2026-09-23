@@ -75,35 +75,11 @@ body {
 }
 
 .chart-panel {
-  display: grid;
-  padding: clamp(1rem, 1.8vw, 1.4rem);
-  min-height: 0;
   position: absolute;
   width: 34%;
   height: 24%;
   left: 33%;
   top: 40%;
-}
-
-.chart-header,
-.panel-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.chart-header h2,
-.panel-heading h2 {
-  margin: 0;
-  font-size: clamp(1.15rem, 1.8vw, 1.7rem);
-}
-
-.chart-surface {
-  position: relative;
-  min-height: 0;
-  height: 100%;
-  padding-top: 1rem;
 }
 
 #history-chart {
@@ -230,9 +206,6 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .chart-surface {
-    min-height: 18rem;
-  }
 }
 
 @media (max-width: 640px) {

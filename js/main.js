@@ -1,4 +1,4 @@
-import { race } from "./vendor/racing-bars.js";
+import { race } from "https://cdn.jsdelivr.net/npm/racing-bars";
 
 const DATA_PATH = "./data/leaderboard.json";
 const TEAM_ORDER = ["7th Grade", "8th Grade"];
@@ -205,9 +205,6 @@ async function renderChart(history) {
     title: "",
     subTitle: "",
     caption: "",
-    labelsPosition: "outside",
-    labelsWidth: 140,
-    fixedScale: true,
     controlButtons: "none",
     overlays: "none",
     mouseControls: false,
@@ -219,20 +216,13 @@ async function renderChart(history) {
       map[grade] = TEAM_COLORS[grade].solid;
       return map;
     }, {}),
-    height: "100%",
-    width: "100%",
-    minHeight: 180,
-    minWidth: 180,
-    marginTop: 24,
-    marginRight: 32,
-    marginBottom: 28,
-    marginLeft: 8,
     topN: TEAM_ORDER.length,
     tickDuration: 500,
     valueDecimals: 0,
     valueLocale: "en-US",
     dateCounter: getDateCounter(history),
-    injectStyles: true
+    injectStyles: true,
+    height: 200,
   });
 }
 
